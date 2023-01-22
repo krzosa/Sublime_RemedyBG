@@ -32,15 +32,6 @@ class RemedyInstance:
             cmd_buffer.write(bytes(filepath, 'utf-8'))
             cmd_buffer.write(ctypes.c_uint32(cmd_args['line']))
             cmd_buffer.write(ctypes.c_uint16(0))
-        elif cmd == COMMAND_DELETE_BREAKPOINT:
-            if cmd_args['id'] in self.breakpoints:
-                rdbg_id = self.breakpoints[cmd_args['id']]
-                cmd_buffer.write(ctypes.c_uint32(rdbg_id))
-                self.breakpoints.pop(cmd_args['id'])
-                if rdbg_id in self.breakpoints_rdbg:
-                    self.breakpoints_rdbg.pop(rdbg_id)
-            else:
-                return 0
         elif cmd == COMMAND_GOTO_FILE_AT_LINE:
             filepath = cmd_args['filename']
             cmd_buffer.write(ctypes.c_uint16(len(filepath)))
@@ -74,11 +65,6 @@ class RemedyInstance:
             cmd_buffer.write(ctypes.c_uint16(len(expr)))
             cmd_buffer.write(bytes(expr, 'utf-8'))
             cmd_buffer.write(ctypes.c_uint16(0))
-        elif cmd == COMMAND_UPDATE_BREAKPOINT_LINE:
-            if cmd_args['id'] in self.breakpoints:
-                rdbg_id = self.breakpoints[cmd_args['id']]
-                cmd_buffer.write(ctypes.c_uint32(rdbg_id))
-                cmd_buffer.write(ctypes.c_uint32(cmd_args['line']))
         elif cmd == COMMAND_SET_WINDOW_POS:
             cmd_buffer.write(ctypes.c_int32(cmd_args['x']))
             cmd_buffer.write(ctypes.c_int32(cmd_args['y']))
@@ -94,7 +80,7 @@ class RemedyInstance:
         try:
             out_data = win32pipe.TransactNamedPipe(self.cmd_pipe, cmd_buffer.getvalue(), 8192, None)
         except pywintypes.error as pipe_error:
-            print('RDBG', pipe_error)
+            print('RemedyBG: ', pipe_error)
             self.close(stop=False)
             return 0
 
@@ -102,16 +88,8 @@ class RemedyInstance:
         result_code = int.from_bytes(out_buffer.read(2), 'little')
         if result_code == 1:
             if cmd == COMMAND_ADD_BREAKPOINT_AT_FILENAME_LINE:
+                bp_id = int.from_bytes(out_buffer.read(4), 'little')
                 return 0
-                # bp_id = int.from_bytes(out_buffer.read(4), 'little')
-                # if bp_id not in self.breakpoints_rdbg:
-                #     self.breakpoints[cmd_args['id']] = bp_id
-                #     self.breakpoints_rdbg[bp_id] = (cmd_args['id'], cmd_args['filename'], cmd_args['line'])
-                # else:
-                #     print('RDBG: Breakpoint (%i) %s@%i skipped, because it will not get triggered' % (cmd_args['id'], cmd_args['filename'], cmd_args['line']))
-                #     self.ignore_next_remove_breakpoint = True
-                #     Editor.RemoveBreakpointById(cmd_args['id'])
-                # return bp_id
             elif cmd == COMMAND_GET_TARGET_STATE:
                 return int.from_bytes(out_buffer.read(2), 'little')
             elif cmd == COMMAND_ADD_WATCH:
@@ -123,7 +101,7 @@ class RemedyInstance:
                 h = int.from_bytes(out_buffer.read(4), 'little')
                 return (x, y, w, h)
         else:
-            sublime.message_dialog('RDBG: ' + str(cmd) + ' failed')
+            sublime.message_dialog('RemedyBG: ' + str(cmd) + ' failed')
             return 0
 
         return 1
@@ -144,7 +122,7 @@ class RemedyInstance:
             self.process.kill()
             self.process = None
 
-        print("RDBG: Connection closed")
+        print("RemedyBG: Connection closed")
 
     def try_launching(self):
         if self.process == None:
@@ -278,6 +256,12 @@ class RemedyInstance:
         file = view.file_name()
         self.send_command(COMMAND_GOTO_FILE_AT_LINE, filename=file, line=line)
 
+    def breakpoint_on_cursor(self):
+        window = sublime.active_window()
+        view = window.active_view()
+        line = view.rowcol(view.sel()[0].b)[0] + 1
+        file = view.file_name()
+        self.send_command(COMMAND_ADD_BREAKPOINT_AT_FILENAME_LINE, filename=file, line=line)
 
 remedy_instance = RemedyInstance()
 
@@ -364,7 +348,13 @@ class RemedyLaunchCommand(sublime_plugin.WindowCommand):
 class RemedyStartDebuggingCommand(sublime_plugin.WindowCommand):
     def run(self):
         if remedy_instance.try_launching(): return
-        remedy_instance.send_command(COMMAND_START_DEBUGGING)
+
+        state = remedy_instance.send_command(COMMAND_GET_TARGET_STATE)
+        if state == TARGETSTATE_NONE:
+            remedy_instance.send_command(COMMAND_START_DEBUGGING)
+        elif state == TARGETSTATE_SUSPENDED:
+            remedy_instance.send_command(COMMAND_CONTINUE_EXECUTION)
+
 
 class RemedyStopDebuggingCommand(sublime_plugin.WindowCommand):
     def run(self):
@@ -385,6 +375,11 @@ class RemedyGotoCursorCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         if remedy_instance.try_launching(): return
         remedy_instance.goto_cursor()
+
+class RemedySetBreakpointCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        if remedy_instance.try_launching(): return
+        remedy_instance.breakpoint_on_cursor()
 
 class RemedyAddToWatchCommand(sublime_plugin.TextCommand):
     def run(self, edit):

@@ -16,6 +16,10 @@
 		"command": "remedy_stop_debugging",
 	},
 	{
+		"caption": "RemedyBG: Set breakpoint",
+		"command": "remedy_set_breakpoint",
+	},
+	{
 		"caption": "RemedyBG: Run to cursor, launch and stop at cursor",
 		"command": "remedy_run_to_cursor",
 	},
