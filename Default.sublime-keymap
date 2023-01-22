@@ -1,0 +1,7 @@
+[
+	{ "keys": ["ctrl+f10"], "command": "remedy_run_to_cursor" },
+	{ "keys": ["f5"], "command": "remedy_start_debugging" },
+	{ "keys": ["shift+f5"], "command": "remedy_stop_debugging" },
+	{ "keys": ["ctrl+shift+f5"], "command": "remedy_restart_debugging" },
+	{ "keys": ["ctrl+t"], "command": "remedy_all_in_one" },
+]

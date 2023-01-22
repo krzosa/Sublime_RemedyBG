@@ -1,0 +1,30 @@
+[
+	{
+		"caption": "RemedyBG: Launch",
+		"command": "remedy_launch",
+	},
+	{
+		"caption": "RemedyBG: Goto the sublime cursor in remedy",
+		"command": "remedy_go_to_cursor",
+	},
+	{
+		"caption": "RemedyBG: Start debugging",
+		"command": "remedy_start_debugging",
+	},
+	{
+		"caption": "RemedyBG: Stop debugging",
+		"command": "remedy_stop_debugging",
+	},
+	{
+		"caption": "RemedyBG: Run to cursor, launch and stop at cursor",
+		"command": "remedy_run_to_cursor",
+	},
+	{
+		"caption": "RemedyBG: Restart debugging",
+		"command": "remedy_restart_debugging",
+	},
+	{
+		"caption": "RemedyBG: Add selection or word under cursor to watch window",
+		"command": "remedy_restart_debugging",
+	},
+]
