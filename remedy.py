@@ -1,3 +1,8 @@
+"""
+CREDITS
+* septag - plugin is based on his 10x plugin https://github.com/slynch8/10x/blob/main/PythonScripts/RemedyBG/RemedyBG.py
+"""
+
 import subprocess
 import os, io, ctypes
 
@@ -279,9 +284,7 @@ remedy_instance = RemedyInstance()
 def get_remedy_executable():
     window = sublime.active_window()
     settings = window.settings()
-    result = settings.get("remedy_executable")
-    if result == None:
-        result = "remedybg"
+    result = settings.get("remedy_executable", "remedybg")
     return result
 
 def execute_process(view, cmd, offset = 1):

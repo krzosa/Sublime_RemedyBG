@@ -27,4 +27,29 @@
 		"caption": "RemedyBG: Add selection or word under cursor to watch window",
 		"command": "remedy_restart_debugging",
 	},
+	{
+		"caption": "RemedyBG: All in one, this is for the convienient mouse + keyboard usage",
+		"command": "remedy_restart_debugging",
+	},
+	{
+		"caption": "RemedyBG: Build and run to cursor, requires a project",
+		"command": "remedy_build",
+		"args": {
+			"command": "run_to_cursor"
+		}
+	},
+	{
+		"caption": "RemedyBG: Build and start debugging, requires a project",
+		"command": "remedy_build",
+		"args": {
+			"command": "start_debugging"
+		}
+	},
+	{
+		"caption": "RemedyBG: Build and goto cursor, requires a project",
+		"command": "remedy_build",
+		"args": {
+			"command": "goto_cursor"
+		}
+	},
 ]
