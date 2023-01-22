@@ -16,15 +16,13 @@ Obviously you need to have remedybg:
 It needs to be available in the PATH with name ```remedybg.exe```. Alternatively you
 can add ```"remedy_executable": "C:/path/to/remedy"``` to your settings.
 
-### Install without package control
+### Install
 
 ```
 cd "C:\Users\krzosa\AppData\Roaming\Sublime Text\Packages"
 git clone https://github.com/krzosa/Sublime_RemedyBG
 ```
-
-Launch Sublime Text, using command palette launch ```Package Control: Satisfy dependencies```,
-That's it.
+Launch Sublime, (maybe you will need Package Control + and call Package Control: Satisfy Dependencies?)
 
 Optional:
 
