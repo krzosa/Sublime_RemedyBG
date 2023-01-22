@@ -16,6 +16,21 @@ Obviously you need to have remedybg:
 It needs to be available in the PATH with name ```remedybg.exe```. Alternatively you
 can add ```"remedy_executable": "C:/path/to/remedy"``` to your settings.
 
+### Install without package control
+
+```
+cd "C:\Users\krzosa\AppData\Roaming\Sublime Text\Packages"
+git clone https://github.com/krzosa/Sublime_RemedyBG
+```
+
+Launch Sublime Text, using command palette launch ```Package Control: Satisfy dependencies```,
+That's it.
+
+Optional:
+
+* add vc_vars_cmd to your settings,
+* add remedy_executable to your settings if remedybg is not on your path or has different name.
+
 ### Remedy build system
 
 Sadly Sublime doesn't allow for querying of currently chosen build system.
@@ -58,9 +73,9 @@ If you are developing using remedybg it seems pretty obvious that you would want
 Feature idea. By clicking using your middle mouse button you can issue most
 of the available debugger commands.
 
-	* Debugger goes to the place you clicked on
-	* The word you clicked is going to get added to watch window
-	* If the word you clicked on matches "rt"(run_to_cursor, "r"(run), "rr"(stop), "rrr"(restart) then it's going to delete that word in sublime and issue a debugger command. So far I have found it to be nice for code discovery kind of stuff with the mouse + keyboard workflow, you can bind this to the keyboard too though. The commands are easy to type using single hand.
+* Debugger goes to the place you clicked on
+* The word you clicked is going to get added to watch window
+* If the word you clicked on matches "rt"(run_to_cursor, "r"(run), "rr"(stop), "rrr"(restart) then it's going to delete that word in sublime and issue a debugger command. So far I have found it to be nice for code discovery kind of stuff with the mouse + keyboard workflow, you can bind this to the keyboard too though. The commands are easy to type using single hand.
 
 ### Credits
 
