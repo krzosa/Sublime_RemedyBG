@@ -60,10 +60,10 @@ you will need to add a field called ```remedy_build_system```, here is an exampl
 If you are developing using remedybg it seems pretty obvious that you would want access to the Microsoft compiler so additionally the package is shipping with the ```setup_vsvars.py```. You can find it in the ```other``` folder. It sets up the vcvarsall paths for you, it was created by one of the sublime developers, I found it on Stack Overflow. You need to:
 
 * Copy it into your User folder ```copy "%appdata%\Sublime Text\Packages\Sublime_RemedyBG\other\setup_vsvars.py" "%appdata%\Sublime Text\Packages\User\setup_vsvars.py"```
-* Add to your settings:
+* Add to your sublime settings the path to vcvarsall, like this:
 
 ```
-"vc_vars_cmd": C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat,
+"vc_vars_cmd": "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat",
 "vc_vars_arch": "amd64",
 ```
 
