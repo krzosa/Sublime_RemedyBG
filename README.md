@@ -19,10 +19,10 @@ can add ```"remedy_executable": "C:/path/to/remedy"``` to your settings.
 ### Install
 
 ```
-cd "C:\Users\krzosa\AppData\Roaming\Sublime Text\Packages"
+cd "%appdata%\Sublime Text\Packages"
 git clone https://github.com/krzosa/Sublime_RemedyBG
 ```
-Launch Sublime, (maybe you will need Package Control + and call Package Control: Satisfy Dependencies?)
+Launch Sublime (maybe you will need Package Control + and call Package Control: Satisfy Dependencies?)
 
 Optional:
 
@@ -73,7 +73,7 @@ of the available debugger commands.
 
 * Debugger goes to the place you clicked on
 * The word you clicked is going to get added to watch window
-* If the word you clicked on matches "rt"(run_to_cursor, "r"(run), "rr"(stop), "rrr"(restart) then it's going to delete that word in sublime and issue a debugger command. So far I have found it to be nice for code discovery kind of stuff with the mouse + keyboard workflow, you can bind this to the keyboard too though. The commands are easy to type using single hand.
+* If the word you clicked on matches "rt"(run_to_cursor), "r"(run), "rr"(stop), "rrr"(restart) then it's going to delete that word in sublime and issue a debugger command. So far I have found it to be nice for code discovery kind of stuff with the mouse + keyboard workflow, you can bind this to the keyboard too though. The commands are easy to type using single hand.
 
 ### Credits
 
