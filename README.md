@@ -44,6 +44,15 @@ you will need to add a field called ```remedy_build_system```, here is an exampl
 }
 ```
 
+### vcvarsall addon
+
+If you are developing using remedybg it seems pretty obvious that you would want access to the Microsoft compiler so additionally the package is shipping with the ```setup_vsvars.py``` (which I'm not sure I will be able to smuggle through package control). It sets up the vcvarsall paths for you, it was created by one of the sublime developers and it was hidden in an obsure repo. To make it work you need to add ```vc_vars_cmd``` to your settings, it needs to point at your vcvarsall:
+
+```
+"vc_vars_cmd": C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat,
+"vc_vars_arch": "amd64",
+```
+
 ### All in one
 
 Feature idea. By clicking using your middle mouse button you can issue most
@@ -56,3 +65,4 @@ of the available debugger commands.
 ### Credits
 
 * septag - plugin is based on his 10x plugin https://github.com/slynch8/10x/blob/main/PythonScripts/RemedyBG/RemedyBG.py
+* OdatNurd - one of the sublime developers showed how to setup vsvarsall in sublime https://stackoverflow.com/questions/39881091/how-to-run-sublimetext-with-visual-studio-environment-enabled/
