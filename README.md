@@ -26,7 +26,8 @@ Launch Sublime (maybe you will need Package Control + and call Package Control: 
 
 Optional:
 
-* add remedy_executable to your settings if remedybg is not on your path or has different name.
+* Add remedy_executable to your settings if remedybg is not on your path or has different name.
+* Setup vcvarsall, Look at vcvarsall section in readme.
 
 ### Remedy build system
 
@@ -57,11 +58,9 @@ you will need to add a field called ```remedy_build_system```, here is an exampl
 ```
 ### Setting up Microsoft compiler enviroment with vcvarsall.bat
 
-If you are developing using remedybg it seems pretty obvious that you would want access to the Microsoft compiler so additionally the package is shipping with the ```setup_vsvars.py```. You can find it in the ```other``` folder. It sets up the vcvarsall paths for you, it was created by one of the sublime developers, I found it on Stack Overflow. You need to:
+If you are developing using remedybg it seems pretty obvious that you would want access to the Microsoft compiler so additionally the package is shipping with the ```setup_vsvars.py```. You need to update the path to your vcvarsall inside ```Remedy.sublime-settings``` or your global ```Preferences.sublime-settings```. THIS ONLY WORKS FOR REMEDY_BUILD!!! If you want to setup vcvarsall for the builtin ```build``` command, copy setup_vsvars.py to your ```User``` folder. You will have 2 copies one in remedy folder and the other in user folder. You need 2 copies because it seems that sublime heavily sandboxes packages from eachother so this package cannot influence the global enviroment. If anyone has any ideas how to make it global I would be happy to hear them.
 
-* Copy it into your User folder ```copy "%appdata%\Sublime Text\Packages\Sublime_RemedyBG\other\setup_vsvars.py" "%appdata%\Sublime Text\Packages\User\setup_vsvars.py"```
-* Add to your sublime settings the path to vcvarsall, like this:
-
+Update these settings: (you can put them into global settings ```Preferences.sublime-settings``` or ```Remedy.sublime-settings```)
 ```
 "vc_vars_cmd": "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat",
 "vc_vars_arch": "amd64",

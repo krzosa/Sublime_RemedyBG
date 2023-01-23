@@ -1,0 +1,12 @@
+{
+	// NOTE to build_before_debugging
+	// You need a project and a build system inside that project if you want build_before_debugging,
+    // Sublime API doesnt allow for querying of the selected build system, I need to essentially emulate that process.
+    // Look here to figure out the project format: https://www.sublimetext.com/docs/projects.html
+    // Additionally you need a field called "remedy_build_system" to signal which
+    // build system was chosen if you have more then 1 build system.
+	"build_before_debugging": true,
+	"executable": "remedybg.exe",
+	"vc_vars_cmd": "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Auxiliary/Build/vcvarsall.bat",
+	"vc_vars_arch": "amd64",
+}

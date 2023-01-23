@@ -8,6 +8,7 @@ import os, io, ctypes
 
 import sublime
 import sublime_plugin
+
 from Default.exec import ExecCommand
 
 import win32pipe, win32file, pywintypes
@@ -59,7 +60,6 @@ class RemedyInstance:
         elif cmd == COMMAND_GET_TARGET_STATE:
             pass
         elif cmd == COMMAND_ADD_WATCH:
-            print(cmd_args)
             expr = cmd_args['expr']
             cmd_buffer.write(ctypes.c_uint8(1))     # watch window 1
             cmd_buffer.write(ctypes.c_uint16(len(expr)))
@@ -267,8 +267,8 @@ remedy_instance = RemedyInstance()
 
 def get_remedy_executable():
     window = sublime.active_window()
-    settings = window.settings()
-    result = settings.get("remedy_executable", "remedybg")
+    settings = sublime.load_settings("Remedy.sublime-settings")
+    result = settings.get("executable", "remedybg")
     return result
 
 def execute_process(view, cmd, offset = 1):
@@ -280,27 +280,39 @@ def execute_process(view, cmd, offset = 1):
     print(cmd)
     subprocess.Popen(cmd)
 
+def get_build_system(window):
+    project = window.project_data()
+    build = None
+    if project:
+        bs = project.get("build_systems")
+        rbs = project.get("remedy_build_system")
+        if bs:
+            if len(bs) == 1:
+                build = bs[0]
+            elif rbs:
+                for i in bs:
+                    if rbs == i["name"]:
+                        build = i
+                        break
+    return project, build
+
+def should_build_before_debugging(window):
+    settings = sublime.load_settings("Remedy.sublime-settings")
+    build_before = settings.get("build_before_debugging", False)
+    if build_before:
+        project, build = get_build_system(window)
+        if project == None or build == None:
+            build_before = False
+
+    return build_before
+
 class RemedyBuildCommand(ExecCommand):
     def run(self, **kwargs):
         self.command = kwargs.get("command")
         if self.command == None:
             sublime.message_dialog("RemedyBG: remedy_build expects a command, one of [run_to_cursor, start_debugging, goto_cursor]\n\nexample :: \"args\":{\"command\": \"run_to_cursor\"}")
 
-        project = self.window.project_data()
-        build = None
-        if project:
-            bs = project.get("build_systems")
-            rbs = project.get("remedy_build_system")
-            if bs:
-                if len(bs) == 1:
-                    build = bs[0]
-                elif rbs:
-                    for i in bs:
-                        if rbs == i["name"]:
-                            build = i
-                            break
-
-
+        project, build = get_build_system(self.window)
         if project == None or build == None:
             sublime.error_message("""
                  RemedyBG: You need a project and a build system inside that project to call this function,
@@ -329,6 +341,17 @@ class RemedyBuildCommand(ExecCommand):
             "word_wrap": build.get("word_wrap", True),
             "syntax": build.get("syntax", "Packages/Text/Plain text.tmLanguage"),
         }
+
+        variables = self.window.extract_variables()
+        for key in ["cmd", "shell_cmd", "file_regex", "line_regex", "working_dir"]:
+            if kwargs.get(key) != None:
+                kwargs[key] = sublime.expand_variables(kwargs[key], variables)
+
+        print(os.environ)
+        for key in os.environ.keys():
+            if key not in kwargs["env"]:
+                kwargs["env"][key] = os.environ[key]
+
         super().run(**kwargs)
     def on_finished(self, proc):
         super().on_finished(proc)
@@ -351,7 +374,10 @@ class RemedyStartDebuggingCommand(sublime_plugin.WindowCommand):
 
         state = remedy_instance.send_command(COMMAND_GET_TARGET_STATE)
         if state == TARGETSTATE_NONE:
-            remedy_instance.send_command(COMMAND_START_DEBUGGING)
+            if should_build_before_debugging(self.window):
+                self.window.run_command("remedy_build", {"command": "start_debugging"})
+            else:
+                remedy_instance.send_command(COMMAND_START_DEBUGGING)
         elif state == TARGETSTATE_SUSPENDED:
             remedy_instance.send_command(COMMAND_CONTINUE_EXECUTION)
 
@@ -369,7 +395,11 @@ class RemedyRestartDebuggingCommand(sublime_plugin.WindowCommand):
 class RemedyRunToCursorCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         if remedy_instance.try_launching(): return
-        remedy_instance.run_to_cursor()
+        window = sublime.active_window()
+        if should_build_before_debugging(sublime.active_window()):
+            window.run_command("remedy_build", {"command": "run_to_cursor"})
+        else:
+            remedy_instance.run_to_cursor()
 
 class RemedyGotoCursorCommand(sublime_plugin.TextCommand):
     def run(self, edit):

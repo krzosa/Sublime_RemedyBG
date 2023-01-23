@@ -50,6 +50,13 @@ def _get_vc_env():
     vars_arch = settings.get("vc_vars_arch", "amd64")
 
     if vars_cmd is None:
+        settings = sublime.load_settings("Remedy.sublime-settings")
+        if settings:
+            vars_cmd = settings.get("vc_vars_cmd")
+            vars_arch = settings.get("vc_vars_arch", "amd64")
+
+
+    if vars_cmd is None:
         print("set_vc_vars: Cannot set Visual Studio Environment")
         print("set_vc_vars: Add 'vc_vars_cmd' setting to settings and restart")
         return None
