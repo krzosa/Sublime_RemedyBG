@@ -39,25 +39,4 @@
 		"caption": "RemedyBG: All in one, this is for the convienient mouse + keyboard usage",
 		"command": "remedy_all_in_one",
 	},
-	{
-		"caption": "RemedyBG: Build and run to cursor, requires a project",
-		"command": "remedy_build",
-		"args": {
-			"command": "run_to_cursor"
-		}
-	},
-	{
-		"caption": "RemedyBG: Build and start debugging, requires a project",
-		"command": "remedy_build",
-		"args": {
-			"command": "start_debugging"
-		}
-	},
-	{
-		"caption": "RemedyBG: Build and goto cursor, requires a project",
-		"command": "remedy_build",
-		"args": {
-			"command": "goto_cursor"
-		}
-	},
 ]

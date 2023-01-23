@@ -21,6 +21,7 @@ class RemedyInstance:
         self.process = None
         self.servername = ""
         self.breakpoints = {}
+        self.settings = sublime.load_settings("Remedy.sublime-settings")
 
     def begin_command(self, cmd):
         cmd_buffer = io.BytesIO()
@@ -281,46 +282,69 @@ class RemedyInstance:
                     self.close()
                     return
                 if self.process and self.event_pipe:
-                    try:
-                        buffer, nbytes, result = win32pipe.PeekNamedPipe(self.event_pipe, 0)
-                        if nbytes:
-                            hr, data = win32file.ReadFile(self.event_pipe, nbytes, None)
-                            event_buffer = io.BytesIO(data)
-                            event_type = int.from_bytes(event_buffer.read(2), 'little')
-                            if event_type == EVENTTYPE_EXIT_PROCESS:
-                                exit_code = int.from_bytes(event_buffer.read(4), 'little')
-                                print('RemedyBG: Debugging terminated with exit code:', exit_code)
-                            elif event_type == EVENTTYPE_BREAKPOINT_ADDED: # @todo: The problem here is that we need to figure out a view to which the marker is going to be bound
-                                pass
-                                # bp_id = int.from_bytes(event_buffer.read(4), 'little')
-                                # filename, line = self.get_breakpoint_locations(bp_id)
-                                # if filename != "":
-                                #     key = filename + ":" + str(line) # @copy_paste
-                                #     self.breakpoints[key] = bp_id
-                                #     view.add_regions(key, [region], scope="region.redish", icon="circle")
-                            elif event_type == EVENTTYPE_BREAKPOINT_REMOVED:
-                                bp_id = int.from_bytes(event_buffer.read(4), 'little')
-                                key = None
-                                for k,v in self.breakpoints.items():
-                                    if v["id"] == bp_id:
-                                        key = k
-                                if key:
-                                    v = self.breakpoints[key]
-                                    v["view"].erase_regions(key)
-                                    self.breakpoints.pop(key)
-                    except win32api.error as pipe_error:
-                        print('RemedyBG: Error occured while trying to update, we got disconnected:', pipe_error)
-                        self.close()
-                        return
+                    event_buffer, event_type = self.get_event()
+                    self.process_event(event_buffer, event_type)
 
-                sublime.set_timeout(update, 1000)
-            sublime.set_timeout(update, 1000)
+                sublime.set_timeout(update, 100)
+            #update() end
+
+            sublime.set_timeout(update, 100)
         except FileNotFoundError as not_found:
             sublime.error_message("RemedyBG: " + str(not_found) + ': ' + target)
         except pywintypes.error as connection_error:
             sublime.error_message("RemedyBG: " + str(connection_error))
         except OSError as os_error:
             sublime.error_message("RemedyBG: " + str(os_error))
+
+    def process_event(self, event_buffer, event_type):
+        if event_type == EVENTTYPE_EXIT_PROCESS:
+            exit_code = int.from_bytes(event_buffer.read(4), 'little')
+            print('RemedyBG: Debugging terminated with exit code:', exit_code)
+        elif event_type == EVENTTYPE_OUTPUT_DEBUG_STRING and self.settings.get("output_debug_strings_to_console", False):
+            text = event_buffer.read(int.from_bytes(event_buffer.read(2), 'little')).decode('utf-8')
+            print(text.strip())
+            i = 0
+            while i < 3000:
+                i += 1
+                event_buffer, event_type = self.get_event()
+                if event_type == EVENTTYPE_OUTPUT_DEBUG_STRING:
+                    text = event_buffer.read(int.from_bytes(event_buffer.read(2), 'little')).decode('utf-8')
+                    print(text.strip())
+                else:
+                    self.process_event(event_buffer, event_type)
+                    break
+        elif event_type == EVENTTYPE_BREAKPOINT_ADDED: # @todo: The problem here is that we need to figure out a view to which the marker is going to be bound
+            pass
+            # bp_id = int.from_bytes(event_buffer.read(4), 'little')
+            # filename, line = self.get_breakpoint_locations(bp_id)
+            # if filename != "":
+            #     key = filename + ":" + str(line) # @copy_paste
+            #     self.breakpoints[key] = bp_id
+            #     view.add_regions(key, [region], scope="region.redish", icon="circle")
+        elif event_type == EVENTTYPE_BREAKPOINT_REMOVED:
+            bp_id = int.from_bytes(event_buffer.read(4), 'little')
+            key = None
+            for k,v in self.breakpoints.items():
+                if v["id"] == bp_id:
+                    key = k
+            if key:
+                v = self.breakpoints[key]
+                v["view"].erase_regions(key)
+                self.breakpoints.pop(key)
+
+    def get_event(self):
+        try:
+            buffer, nbytes, result = win32pipe.PeekNamedPipe(self.event_pipe, 0)
+            if nbytes:
+                hr, data = win32file.ReadFile(self.event_pipe, nbytes, None)
+                event_buffer = io.BytesIO(data)
+                event_type = int.from_bytes(event_buffer.read(2), 'little')
+                return event_buffer, event_type
+            return None, None
+        except win32api.error as pipe_error:
+            print('RemedyBG: Error occured while trying to update, we got disconnected:', pipe_error)
+            self.close()
+            return None, None
 
     def filename_and_line():
         window = sublime.active_window()
@@ -347,8 +371,7 @@ remedy_instance = RemedyInstance()
 
 def get_remedy_executable():
     window = sublime.active_window()
-    settings = sublime.load_settings("Remedy.sublime-settings")
-    result = settings.get("executable", "remedybg")
+    result = remedy_instance.settings.get("executable", "remedybg")
     return result
 
 def get_build_system(window):
@@ -376,8 +399,7 @@ def get_build_system(window):
     return project, build
 
 def should_build_before_debugging(window):
-    settings = sublime.load_settings("Remedy.sublime-settings")
-    build_before = settings.get("build_before_debugging", False)
+    build_before = remedy_instance.settings.get("build_before_debugging", False)
     if build_before:
         project, build = get_build_system(window)
         if project == None or build == None:
@@ -555,8 +577,7 @@ class RemedyAllInOneCommand(sublime_plugin.TextCommand):
 class RemedyOnBuildCommand(sublime_plugin.EventListener):
     def on_window_command(self, window, command_name, args):
         if command_name in ["build", "remedy_build"]:
-            settings = sublime.load_settings("Remedy.sublime-settings")
-            if settings.get("stop_debugging_on_build_command", False):
+            if remedy_instance.settings.get("stop_debugging_on_build_command", False):
                 remedy_instance.stop_debugging()
 
 def plugin_unloaded():
