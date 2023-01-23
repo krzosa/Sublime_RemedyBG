@@ -11,7 +11,7 @@ import sublime_plugin
 
 from Default.exec import ExecCommand
 
-import win32pipe, win32file, pywintypes
+import win32pipe, win32file, pywintypes, win32api
 from .remedy_api import *
 
 class RemedyInstance:
@@ -35,7 +35,7 @@ class RemedyInstance:
             out_data = win32pipe.TransactNamedPipe(self.cmd_pipe, cmd_buffer.getvalue(), 8192, None)
         except pywintypes.error as pipe_error:
             print('RemedyBG: ', pipe_error)
-            self.close(stop=False)
+            self.close()
             return 0
 
         out_buffer = io.BytesIO(out_data[1])
@@ -56,23 +56,24 @@ class RemedyInstance:
         if result_code == 1:
             bp_id = int.from_bytes(buff.read(4), 'little')
             key = filename + ":" + str(line)
-            self.breakpoints[key] = bp_id
+            self.breakpoints[key] = {"id": bp_id, "view": view}
             view.add_regions(key, [region], scope="region.redish", icon="circle")
 
-    def delete_breakpoint(self, view, filename, line):
+    def delete_breakpoint(self, filename, line):
         key = filename + ":" + str(line)
         id = self.breakpoints.get(key)
         if id:
+            id = id
             buff = self.begin_command(COMMAND_DELETE_BREAKPOINT)
-            buff.write(ctypes.c_uint32(id))
+            buff.write(ctypes.c_uint32(id["id"]))
             buff, result_code = self.end_command(buff)
             self.breakpoints.pop(key)
-        view.erase_regions(key)
+            id["view"].erase_regions(key)
 
     def toggle_breakpoint(self, view, filename, line, region):
         key = filename + ":" + str(line)
         if key in self.breakpoints.keys():
-            self.delete_breakpoint(view, filename, line)
+            self.delete_breakpoint(filename, line)
         else:
             self.add_breakpoint_at_filename_line(view, filename, line, region)
 
@@ -108,6 +109,35 @@ class RemedyInstance:
             return int.from_bytes(buff.read(4), 'little')
         return 0
 
+    def get_breakpoint_locations(self, bp_id):
+        if self.cmd_pipe is None:
+            return 0
+        cmd_buffer = io.BytesIO()
+        cmd_buffer.write(ctypes.c_uint16(COMMAND_GET_BREAKPOINT_LOCATIONS))
+        cmd_buffer.write(ctypes.c_uint32(bp_id))
+        try:
+            out_data = win32pipe.TransactNamedPipe(self.cmd_pipe, cmd_buffer.getvalue(), 8192, None)
+        except pywintypes.error as pipe_error:
+            print('RemedyBG', pipe_error)
+            self.close()
+            return ('', 0)
+
+        out_buffer = io.BytesIO(out_data[1])
+        result_code = int.from_bytes(out_buffer.read(2), 'little')
+        if result_code == 1:
+            num_locs = int.from_bytes(out_buffer.read(2), 'little')
+            # TODO: do we have several locations for a single breakpoint ?
+            if num_locs > 0:
+                address = int.from_bytes(out_buffer.read(8), 'little')
+                module_name = out_buffer.read(int.from_bytes(out_buffer.read(2), 'little')).decode('utf-8')
+                filename = out_buffer.read(int.from_bytes(out_buffer.read(2), 'little')).decode('utf-8')
+                line_num = int.from_bytes(out_buffer.read(4), 'little')
+                return (filename, line_num)
+            else:
+                return ('', 0)
+        else:
+            return ('', 0)
+
     def send_command(self, cmd):
         buff = self.begin_command(cmd)
         if cmd == COMMAND_START_DEBUGGING:
@@ -118,10 +148,7 @@ class RemedyInstance:
         if self.get_target_state() != TARGETSTATE_NONE:
             self.send_command(COMMAND_STOP_DEBUGGING)
 
-    def close(self, stop=True):
-        if stop:
-            self.stop()
-
+    def close(self):
         if self.cmd_pipe:
             win32file.CloseHandle(self.cmd_pipe)
             self.cmd_pipe = None
@@ -134,8 +161,8 @@ class RemedyInstance:
             self.process.kill()
             self.process = None
 
-        for bp in self.breakpoints.keys():
-            erase_regions(bp)
+        for k,v in self.breakpoints.items():
+            v["view"].erase_region(k)
         self.breakpoints = {}
 
         print("RemedyBG: Connection closed")
@@ -243,11 +270,43 @@ class RemedyInstance:
                 global remedy_instance
                 if self.process is None:
                     return
-                if self.process is not None and self.process.poll() is not None:
+                if self.process and self.process.poll():
                     print('RemedyBG: quit with code: %i' % (self.process.poll()))
                     self.process = None
-                    self.close(stop=False)
+                    self.close()
                     return
+                if self.process and self.event_pipe:
+                    try:
+                        buffer, nbytes, result = win32pipe.PeekNamedPipe(self.event_pipe, 0)
+                        if nbytes:
+                            hr, data = win32file.ReadFile(self.event_pipe, nbytes, None)
+                            event_buffer = io.BytesIO(data)
+                            event_type = int.from_bytes(event_buffer.read(2), 'little')
+                            if event_type == EVENTTYPE_EXIT_PROCESS:
+                                exit_code = int.from_bytes(event_buffer.read(4), 'little')
+                                print('RemedyBG: Debugging terminated with exit code:', exit_code)
+                            elif event_type == EVENTTYPE_BREAKPOINT_ADDED: # @todo: The problem here is that we need to figure out a view to which the marker is going to be bound
+                                pass
+                                # bp_id = int.from_bytes(event_buffer.read(4), 'little')
+                                # filename, line = self.get_breakpoint_locations(bp_id)
+                                # if filename != "":
+                                #     key = filename + ":" + str(line) # @copy_paste
+                                #     self.breakpoints[key] = bp_id
+                                #     view.add_regions(key, [region], scope="region.redish", icon="circle")
+                            elif event_type == EVENTTYPE_BREAKPOINT_REMOVED:
+                                bp_id = int.from_bytes(event_buffer.read(4), 'little')
+                                key = None
+                                for k,v in self.breakpoints.items():
+                                    if v["id"] == bp_id:
+                                        key = k
+                                if key:
+                                    v = self.breakpoints[key]
+                                    v["view"].erase_regions(key)
+                                    self.breakpoints.pop(key)
+                    except win32api.error as pipe_error:
+                        print('RemedyBG: Error occured while trying to update, we got disconnected:', pipe_error)
+                        self.close()
+                        return
 
                 sublime.set_timeout(update, 1000)
             sublime.set_timeout(update, 1000)
@@ -302,6 +361,14 @@ def get_build_system(window):
                     if rbs == i["name"]:
                         build = i
                         break
+
+    # if build == None:
+    #     settings = sublime.load_settings("Preferences.sublime-settings")
+    #     bs = settings.get("remedy_chosen_build_system")
+    #     if bs:
+    #         sublime.
+
+
     return project, build
 
 def should_build_before_debugging(window):
@@ -321,7 +388,7 @@ class RemedyBuildCommand(ExecCommand):
             sublime.message_dialog("RemedyBG: remedy_build expects a command, one of [run_to_cursor, start_debugging, goto_cursor]\n\nexample :: \"args\":{\"command\": \"run_to_cursor\"}")
 
         project, build = get_build_system(self.window)
-        if project == None or build == None:
+        if build == None:
             sublime.error_message("""
                  RemedyBG: You need a project and a build system inside that project to call this function,
                  Sublime API doesnt allow for querying the selected build system.
@@ -476,3 +543,6 @@ class RemedyOnBuildCommand(sublime_plugin.EventListener):
             settings = sublime.load_settings("Remedy.sublime-settings")
             if settings.get("stop_debugging_on_build_command", False):
                 remedy_instance.stop_debugging()
+
+def plugin_unloaded():
+    remedy_instance.close()
