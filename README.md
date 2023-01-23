@@ -30,8 +30,8 @@ Sadly Sublime doesn't allow for querying of currently chosen build system.
 Neither does it allow for effective hook into the builtin ```build``` command
 with custom arguments as such this package needs to emulate the ```build``` command.
 
-To make it so that you can build before debugging you need to firstly change
-```Remedy.sublime-settings``` secondly, you need to have
+To make it so that you can build before debugging you need to: firstly change
+```Remedy.sublime-settings```, secondly you need to have
 a project / project file. That project file needs a build system, if there
 is only one build system, everything is going to work. If there are more,
 you will need to add a field called ```remedy_build_system```, here is an example:

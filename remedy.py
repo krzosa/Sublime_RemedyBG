@@ -347,7 +347,6 @@ class RemedyBuildCommand(ExecCommand):
             if kwargs.get(key) != None:
                 kwargs[key] = sublime.expand_variables(kwargs[key], variables)
 
-        print(os.environ)
         for key in os.environ.keys():
             if key not in kwargs["env"]:
                 kwargs["env"][key] = os.environ[key]
