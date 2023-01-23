@@ -20,6 +20,10 @@
 		"command": "remedy_set_breakpoint",
 	},
 	{
+		"caption": "RemedyBG: Set conditional breakpoint",
+		"command": "remedy_set_conditional_breakpoint",
+	},
+	{
 		"caption": "RemedyBG: Run to cursor, launch and stop at cursor",
 		"command": "remedy_run_to_cursor",
 	},
@@ -29,11 +33,11 @@
 	},
 	{
 		"caption": "RemedyBG: Add selection or word under cursor to watch window",
-		"command": "remedy_restart_debugging",
+		"command": "remedy_add_to_watch",
 	},
 	{
 		"caption": "RemedyBG: All in one, this is for the convienient mouse + keyboard usage",
-		"command": "remedy_restart_debugging",
+		"command": "remedy_all_in_one",
 	},
 	{
 		"caption": "RemedyBG: Build and run to cursor, requires a project",

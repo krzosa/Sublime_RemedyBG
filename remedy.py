@@ -46,12 +46,17 @@ class RemedyInstance:
             sublime.message_dialog('RemedyBG: ' + str(cmd) + ' failed')
         return out_buffer, result_code
 
-    def add_breakpoint_at_filename_line(self, view, filename, line, region):
+    def add_breakpoint_at_filename_line(self, view, filename, line, region, expr = None):
         buff = self.begin_command(COMMAND_ADD_BREAKPOINT_AT_FILENAME_LINE)
         buff.write(ctypes.c_uint16(len(filename)))
         buff.write(bytes(filename, 'utf-8'))
         buff.write(ctypes.c_uint32(line))
-        buff.write(ctypes.c_uint16(0))
+        if expr:
+            buff.write(ctypes.c_uint16(len(expr)))
+            buff.write(bytes(expr, 'utf-8'))
+        else:
+            buff.write(ctypes.c_uint16(0))
+
         buff, result_code = self.end_command(buff)
         if result_code == 1:
             bp_id = int.from_bytes(buff.read(4), 'little')
@@ -317,27 +322,26 @@ class RemedyInstance:
         except OSError as os_error:
             sublime.error_message("RemedyBG: " + str(os_error))
 
-    def run_to_cursor(self):
-        window = sublime.active_window()
-        view = window.active_view()
-        line = view.rowcol(view.sel()[0].b)[0] + 1
-        filename = view.file_name()
-        self.run_to_file_at_line(filename, line)
-
-    def goto_cursor(self):
-        window = sublime.active_window()
-        view = window.active_view()
-        line = view.rowcol(view.sel()[0].b)[0] + 1
-        filename = view.file_name()
-        self.goto_file_at_line(filename, line)
-
-    def breakpoint_on_cursor(self):
+    def filename_and_line():
         window = sublime.active_window()
         view = window.active_view()
         sel = view.sel()[0].b
         line = view.rowcol(sel)[0] + 1
         filename = view.file_name()
-        self.toggle_breakpoint(view, filename, line, sublime.Region(sel))
+        return filename, line, sel
+
+    def run_to_cursor(self):
+        filename, line, cursor = RemedyInstance.filename_and_line()
+        self.run_to_file_at_line(filename, line)
+
+    def goto_cursor(self):
+        filename, line, cursor = RemedyInstance.filename_and_line()
+        self.goto_file_at_line(filename, line)
+
+    def breakpoint_on_cursor(self, expr = None):
+        filename, line, cursor = RemedyInstance.filename_and_line()
+        self.toggle_breakpoint(view, filename, line, sublime.Region(cursor))
+
 
 remedy_instance = RemedyInstance()
 
@@ -483,6 +487,17 @@ class RemedySetBreakpointCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         if remedy_instance.try_launching(): return
         remedy_instance.breakpoint_on_cursor()
+
+class RemedySetConditionalBreakpointCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        if remedy_instance.try_launching(): return
+        window = self.view.window()
+
+        def on_done(expr):
+            filename, line, cursor = RemedyInstance.filename_and_line()
+            remedy_instance.add_breakpoint_at_filename_line(self.view, filename, line, sublime.Region(cursor), expr)
+
+        window.show_input_panel("Enter conditional breakpoint expression:", "", on_done, None, None)
 
 class RemedyAddToWatchCommand(sublime_plugin.TextCommand):
     def run(self, edit):
