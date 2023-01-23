@@ -7,7 +7,7 @@ This package seeks to recreate that experience in Sublime Text but without
 the buggy and slow Visual Studio, thanks to a much better debugger that is RemedyBG
 and it's user API!
 
-You can but the debugger here:
+You can buy the debugger here:
 
 * https://remedybg.itch.io/remedybg
 
