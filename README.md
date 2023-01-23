@@ -7,14 +7,9 @@ This package seeks to recreate that experience in Sublime Text but without
 the buggy and slow Visual Studio, thanks to a much better debugger that is RemedyBG
 and it's user API!
 
-### Requirement
-
-Obviously you need to have remedybg:
+You can but the debugger here:
 
 * https://remedybg.itch.io/remedybg
-
-It needs to be available in the PATH with name ```remedybg.exe```. Alternatively you
-can add ```"remedy_executable": "C:/path/to/remedy"``` to your settings.
 
 ### Install
 
@@ -29,10 +24,14 @@ Optional:
 * Add remedy_executable to your settings if remedybg is not on your path or has different name.
 * Setup vcvarsall, Look at vcvarsall section in readme.
 
-### Remedy build system
+### Build before debugging
 
 Sadly Sublime doesn't allow for querying of currently chosen build system.
-To make it so that you can build before starting to debug you need to have
+Neither does it allow for effective hook into the builtin ```build``` command
+with custom arguments as such this package needs to emulate the ```build``` command.
+
+To make it so that you can build before debugging you need to firstly change
+```Remedy.sublime-settings``` secondly, you need to have
 a project / project file. That project file needs a build system, if there
 is only one build system, everything is going to work. If there are more,
 you will need to add a field called ```remedy_build_system```, here is an example:
