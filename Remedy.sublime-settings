@@ -6,6 +6,7 @@
     // Additionally you need a field called "remedy_build_system" to signal which
     // build system was chosen if you have more then 1 build system.
 	"build_before_debugging": true,
+	"stop_debugging_on_build_command": true,
 	"executable": "remedybg.exe",
 	"vc_vars_cmd": "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Auxiliary/Build/vcvarsall.bat",
 	"vc_vars_arch": "amd64",
