@@ -21,7 +21,6 @@ class RemedyInstance:
         self.process = None
         self.servername = ""
         self.breakpoints = {}
-        self.settings = sublime.load_settings("Remedy.sublime-settings")
 
     def begin_command(self, cmd):
         cmd_buffer = io.BytesIO()
@@ -237,7 +236,7 @@ class RemedyInstance:
             print("RemedyBG: Server name = ", self.servername)
 
 
-            cmd = [get_remedy_executable(), "--servername", self.servername, target]
+            cmd = [get_remedy_variable("executable", "remedybg.exe"), "--servername", self.servername, target]
             print("Launching Remedy with command: " + str(cmd))
             self.process = subprocess.Popen(cmd)
 
@@ -369,9 +368,10 @@ class RemedyInstance:
 
 remedy_instance = RemedyInstance()
 
-def get_remedy_executable():
-    window = sublime.active_window()
-    result = remedy_instance.settings.get("executable", "remedybg")
+def get_remedy_variable(var, default):
+    settings = sublime.load_settings("Remedy.sublime-settings")
+    result = settings.get(var)
+    if result == None: result = default
     return result
 
 def get_build_system(window):
@@ -399,7 +399,7 @@ def get_build_system(window):
     return project, build
 
 def should_build_before_debugging(window):
-    build_before = remedy_instance.settings.get("build_before_debugging", False)
+    build_before = get_remedy_variable("build_before_debugging", False)
     if build_before:
         project, build = get_build_system(window)
         if project == None or build == None:
@@ -577,7 +577,7 @@ class RemedyAllInOneCommand(sublime_plugin.TextCommand):
 class RemedyOnBuildCommand(sublime_plugin.EventListener):
     def on_window_command(self, window, command_name, args):
         if command_name in ["build", "remedy_build"]:
-            if remedy_instance.settings.get("stop_debugging_on_build_command", False):
+            if get_remedy_variable("stop_debugging_on_build_command", False):
                 remedy_instance.stop_debugging()
 
 def plugin_unloaded():
