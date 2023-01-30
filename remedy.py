@@ -153,6 +153,10 @@ class RemedyInstance:
         if self.get_target_state() != TARGETSTATE_NONE:
             self.send_command(COMMAND_STOP_DEBUGGING)
 
+    def is_connected(self):
+        result = self.cmd_pipe != None
+        return result
+
     def close(self):
         if self.cmd_pipe:
             win32file.CloseHandle(self.cmd_pipe)
@@ -427,6 +431,8 @@ class RemedyBuildCommand(ExecCommand):
         if remedy_instance.try_launching():
             return
 
+        self.window.run_command("save_all")
+
         kwargs = {
             "cmd": build.get("cmd", None),
             "shell_cmd": build.get("shell_cmd", None),
@@ -455,14 +461,20 @@ class RemedyBuildCommand(ExecCommand):
         super().run(**kwargs)
     def on_finished(self, proc):
         super().on_finished(proc)
-        if self.command == "run_to_cursor":
-            remedy_instance.run_to_cursor()
-        elif self.command == "start_debugging":
-            remedy_instance.send_command(COMMAND_START_DEBUGGING)
-        elif self.command == "goto_cursor":
-            remedy_instance.goto_cursor()
-        else: # @warning: While adding here also need to change error message !!!!
-            sublime.message_dialog("RemedyBG: Unrecognized command =", self.command)
+
+        if proc == self.proc and proc.killed == False and proc.exit_code() == 0:
+            errs = self.output_view.find_all_results()
+            if len(errs) == 0:
+                if self.command == "run_to_cursor":
+                    remedy_instance.run_to_cursor()
+                elif self.command == "start_debugging":
+                    remedy_instance.send_command(COMMAND_START_DEBUGGING)
+                elif self.command == "goto_cursor":
+                    remedy_instance.goto_cursor()
+                else: # @warning: While adding here also need to change error message !!!!
+                    sublime.message_dialog("RemedyBG: Unrecognized command =", self.command)
+
+
 
 class RemedyLaunchCommand(sublime_plugin.WindowCommand):
     def run(self):
@@ -576,6 +588,8 @@ class RemedyAllInOneCommand(sublime_plugin.TextCommand):
 
 class RemedyOnBuildCommand(sublime_plugin.EventListener):
     def on_window_command(self, window, command_name, args):
+        if remedy_instance.is_connected() == False:
+            return
         if command_name in ["build", "remedy_build"]:
             if get_remedy_variable("stop_debugging_on_build_command", False):
                 remedy_instance.stop_debugging()
