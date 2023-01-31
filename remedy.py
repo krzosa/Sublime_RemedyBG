@@ -365,7 +365,7 @@ class RemedyInstance:
         filename, line, cursor = RemedyInstance.filename_and_line()
         self.goto_file_at_line(filename, line)
 
-    def breakpoint_on_cursor(self, expr = None):
+    def breakpoint_on_cursor(self, view):
         filename, line, cursor = RemedyInstance.filename_and_line()
         self.toggle_breakpoint(view, filename, line, sublime.Region(cursor))
 
@@ -520,7 +520,7 @@ class RemedyGotoCursorCommand(sublime_plugin.TextCommand):
 class RemedySetBreakpointCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         if remedy_instance.try_launching(): return
-        remedy_instance.breakpoint_on_cursor()
+        remedy_instance.breakpoint_on_cursor(self.view)
 
 class RemedySetConditionalBreakpointCommand(sublime_plugin.TextCommand):
     def run(self, edit):
