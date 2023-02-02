@@ -196,9 +196,11 @@ class RemedyInstance:
             project = self.window.project_data()
             if project and project.get("remedy_target"):
                 remedy_target = project.get("remedy_target")
+                remedy_target = sublime.expand_variables(remedy_target, self.window.extract_variables())
 
         if remedy_target:
             self.launch(remedy_target)
+            return
 
         if remedy_target == None:
             vars = self.window.extract_variables()
@@ -227,6 +229,7 @@ class RemedyInstance:
 
     def launch(self, target):
         try:
+            os.chdir(os.path.dirname(target))
             self.servername = "default"
             window = sublime.active_window()
             vars = window.extract_variables()
