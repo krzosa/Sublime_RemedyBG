@@ -24,12 +24,12 @@ git clone https://github.com/krzosa/Sublime_RemedyBG
 
 Optional:
 
-- If remedybg is not on your path or has different name, change remedy_executable in your personal sublime settings, look at Remedy.sublime-settings for syntax reference.
-- Setup visual studio developer's prompt or "vcvarsall", look at vcvarsall section in readme.
+- If remedybg is not on your path or has different name, change remedy_executable in your personal sublime settings, look at ```Remedy.sublime-settings``` for syntax reference.
+- Setup visual studio developer's prompt or ```vcvarsall.bat```, look at vcvarsall section in readme.
 
 ### Usage
 
-By default plugin binds to standard debugger hotkeys. You can edit them in your personal sublime keybindings, look at "Default.sublime-keymap" for syntax reference.
+By default plugin binds to standard debugger hotkeys. You can edit them in your personal sublime keybindings, look at ```Default.sublime-keymap``` for syntax reference.
 - Ctrl + F10: Run to cursor
 - F5: Start debugging
 - Shift + F5: Stop debugging
@@ -67,12 +67,12 @@ you will need to add a field called ```remedy_build_system```, here is an exampl
 	]
 }
 ```
-### Bonus: Setting up Microsoft compiler enviroment with vcvarsall.bat
+### Bonus: Setting up Microsoft compiler enviroment with ```vcvarsall.bat```
 
-If you are developing using remedybg it seems pretty obvious that you would want access to the Microsoft compiler so additionally the package is shipping with the ```setup_vsvars.py```. 
+If you are developing using remedybg it seems pretty obvious that you would want access to the Microsoft compiler so additionally the package is shipping with the ```setup_vsvars.py```.
 
-1. Copy content of setup_vcvarsall to your ```User``` folder for normal build commands or to ```Sublime_RemedyBG``` dir for remedy_build.
-2. You need to update the path to your vcvarsall inside your global sublime settings/preferences, use ```Remedy.sublime-settings``` for reference. 
+1. Copy content of ```setup_vcvarsall``` to your ```User``` folder for normal build commands or to ```Sublime_RemedyBG``` dir for build before debugging.
+2. You need to update the path to your vcvarsall inside your global sublime settings/preferences, use ```Remedy.sublime-settings``` for reference.
 
 If you want vcvars for both remedy_build and normal sublime build, you will need to have 2 copies, one in remedy folder and the other in user folder. You need 2 copies because it seems that sublime heavily sandboxes packages from eachother so this package cannot influence the global enviroment. If anyone has any ideas how to make it global I would be happy to hear them.
 
