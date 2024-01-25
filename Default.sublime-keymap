@@ -3,5 +3,6 @@
 	{ "keys": ["f5"], "command": "remedy_start_debugging" },
 	{ "keys": ["shift+f5"], "command": "remedy_stop_debugging" },
 	{ "keys": ["f9"], "command": "remedy_set_breakpoint" },
+	{ "keys": ["ctrl+f9"], "command": "remedy_set_conditional_breakpoint" },
 	{ "keys": ["ctrl+shift+f5"], "command": "remedy_restart_debugging" },
 ]

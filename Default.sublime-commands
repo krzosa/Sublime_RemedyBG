@@ -4,7 +4,7 @@
 		"command": "remedy_launch",
 	},
 	{
-		"caption": "RemedyBG: Goto the sublime cursor in remedy",
+		"caption": "RemedyBG: Goto to cursor in remedy",
 		"command": "remedy_go_to_cursor",
 	},
 	{
@@ -34,9 +34,5 @@
 	{
 		"caption": "RemedyBG: Add selection or word under cursor to watch window",
 		"command": "remedy_add_to_watch",
-	},
-	{
-		"caption": "RemedyBG: All in one, this is for the convienient mouse + keyboard usage",
-		"command": "remedy_all_in_one",
 	},
 ]
