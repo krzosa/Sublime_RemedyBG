@@ -554,41 +554,6 @@ class RemedyAddToWatchCommand(sublime_plugin.TextCommand):
 
         remedy_instance.add_watch(self.view.substr(region_cursor))
 
-
-class RemedyAllInOneCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        if remedy_instance.try_launching():
-            return
-
-        sel = self.view.sel()
-        if len(sel) > 1:
-            return
-
-        region_cursor = sel[0]
-        settings = self.view.settings()
-        old_boundaries = settings.get("word_separators")
-        settings.set("word_separators"," ;,")
-        region_word_on_cursor = self.view.word(region_cursor)
-        settings.set("word_separators", old_boundaries)
-
-        remedy_instance.goto_cursor()
-
-        content = self.view.substr(region_word_on_cursor)
-        if content == "r":
-            remedy_instance.send_command(COMMAND_START_DEBUGGING)
-            self.view.replace(edit, region_word_on_cursor, "")
-        elif content == "rr":
-            remedy_instance.stop_debugging()
-            self.view.replace(edit, region_word_on_cursor, "")
-        elif content == "rrr":
-            remedy_instance.send_command(COMMAND_RESTART_DEBUGGING)
-            self.view.replace(edit, region_word_on_cursor, "")
-        elif content == "rt":
-            remedy_instance.run_to_cursor()
-            self.view.replace(edit, region_word_on_cursor, "")
-        else:
-            remedy_instance.add_watch(content)
-
 class RemedyOnBuildCommand(sublime_plugin.EventListener):
     def on_window_command(self, window, command_name, args):
         if remedy_instance.is_connected() == False:

@@ -17,14 +17,26 @@ You can buy the debugger here:
 cd "%appdata%\Sublime Text\Packages"
 git clone https://github.com/krzosa/Sublime_RemedyBG
 ```
-Launch Sublime (maybe you will need Package Control + and call Package Control: Satisfy Dependencies?)
+
+- Make sure you have package control (Ctrl + Shift + P => Install Package Control)
+- Ctrl + Shift + P => Satisfy Dependencies
+- Restart Sublime
 
 Optional:
 
-* Add remedy_executable to your settings if remedybg is not on your path or has different name.
-* Setup vcvarsall, Look at vcvarsall section in readme.
+- If remedybg is not on your path or has different name, change remedy_executable in your personal sublime settings, look at Remedy.sublime-settings for syntax reference.
+- Setup visual studio developer's prompt or "vcvarsall", look at vcvarsall section in readme.
 
-### Build before debugging
+### Usage
+
+By default plugin binds to standard debugger hotkeys. You can edit them in your personal sublime keybindings, look at "Default.sublime-keymap" for syntax reference.
+- Ctrl + F10: Run to cursor
+- F5: Start debugging
+- Shift + F5: Stop debugging
+- F9: Set breakpoint
+- Ctrl + Shift + F5 - Restart debugging
+
+### Bonus: Build before debugging
 
 Sadly Sublime doesn't allow for querying of currently chosen build system.
 Neither does it allow for effective hook into the builtin ```build``` command
@@ -55,24 +67,14 @@ you will need to add a field called ```remedy_build_system```, here is an exampl
 	]
 }
 ```
-### Setting up Microsoft compiler enviroment with vcvarsall.bat
+### Bonus: Setting up Microsoft compiler enviroment with vcvarsall.bat
 
-If you are developing using remedybg it seems pretty obvious that you would want access to the Microsoft compiler so additionally the package is shipping with the ```setup_vsvars.py```. You need to update the path to your vcvarsall inside ```Remedy.sublime-settings``` or your global ```Preferences.sublime-settings```. THIS ONLY WORKS FOR REMEDY_BUILD!!! If you want to setup vcvarsall for the builtin ```build``` command, copy setup_vsvars.py to your ```User``` folder. You will have 2 copies one in remedy folder and the other in user folder. You need 2 copies because it seems that sublime heavily sandboxes packages from eachother so this package cannot influence the global enviroment. If anyone has any ideas how to make it global I would be happy to hear them.
+If you are developing using remedybg it seems pretty obvious that you would want access to the Microsoft compiler so additionally the package is shipping with the ```setup_vsvars.py```. 
 
-Update these settings: (you can put them into global settings ```Preferences.sublime-settings``` or ```Remedy.sublime-settings```)
-```
-"vc_vars_cmd": "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat",
-"vc_vars_arch": "amd64",
-```
+1. Copy content of setup_vcvarsall to your ```User``` folder for normal build commands or to ```Sublime_RemedyBG``` dir for remedy_build.
+2. You need to update the path to your vcvarsall inside your global sublime settings/preferences, use ```Remedy.sublime-settings``` for reference. 
 
-### All in one
-
-Feature idea. By clicking using your middle mouse button you can issue most
-of the available debugger commands.
-
-* Debugger goes to the place you clicked on
-* The word you clicked is going to get added to watch window
-* If the word you clicked on matches "rt"(run_to_cursor), "r"(run), "rr"(stop), "rrr"(restart) then it's going to delete that word in sublime and issue a debugger command. So far I have found it to be nice for code discovery kind of stuff with the mouse + keyboard workflow, you can bind this to the keyboard too though. The commands are easy to type using single hand.
+If you want vcvars for both remedy_build and normal sublime build, you will need to have 2 copies, one in remedy folder and the other in user folder. You need 2 copies because it seems that sublime heavily sandboxes packages from eachother so this package cannot influence the global enviroment. If anyone has any ideas how to make it global I would be happy to hear them.
 
 ### Credits
 

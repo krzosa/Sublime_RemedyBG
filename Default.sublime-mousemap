@@ -1,9 +1,0 @@
-[
-    {
-        "button": "button3",
-        "count": 1,
-        "modifiers": [],
-        "command": "remedy_all_in_one",
-        "press_command": "drag_select"
-    }
-]

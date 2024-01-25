@@ -4,5 +4,4 @@
 	{ "keys": ["shift+f5"], "command": "remedy_stop_debugging" },
 	{ "keys": ["f9"], "command": "remedy_set_breakpoint" },
 	{ "keys": ["ctrl+shift+f5"], "command": "remedy_restart_debugging" },
-	{ "keys": ["ctrl+t"], "command": "remedy_all_in_one" },
 ]
