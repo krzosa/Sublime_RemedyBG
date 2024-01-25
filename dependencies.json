@@ -1,7 +1,0 @@
-{
-	"windows": {
-		"*": [
-			"python-pywin32"
-		]
-	}
-}

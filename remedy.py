@@ -1,6 +1,7 @@
+from .Pywin32 import setup
+import win32pipe, win32file, pywintypes, win32api
 import subprocess, os, io, ctypes
 import sublime, sublime_plugin
-import win32pipe, win32file, pywintypes, win32api
 from .remedy_api import *
 
 def get_remedy_variable(name, default):

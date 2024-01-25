@@ -14,10 +14,6 @@ cd "%appdata%\Sublime Text\Packages"
 git clone https://github.com/krzosa/Sublime_RemedyBG
 ```
 
-- Make sure you have package control (Ctrl + Shift + P => Install Package Control)
-- Ctrl + Shift + P => Satisfy Dependencies
-- Restart Sublime
-
 Optional:
 
 - If remedybg is not on your path or has a different name, change remedy_executable in your personal sublime settings, look at ```Remedy.sublime-settings``` for syntax reference.
